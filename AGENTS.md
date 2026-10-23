@@ -2,6 +2,9 @@
 
 This repository contains repeatable PostgreSQL Docker Compose labs. Lesson 1
 covers indices and `EXPLAIN` using the seed in `database/` and exercises in `sql/`.
+Lesson 2's draft locking lab uses `sql/lesson-2/`, its own `locking` database,
+and `lesson-2/WORKSHEET.md`. `./lab locking verify` checks concurrent behaviour
+in an isolated database; preserve both learner databases during verification.
 See `README.md` for installation, `WORKSHEET.md` for exercises, and `LAB-GUIDE.md`
 for operational details. `./lab verify` rehearses the exercises in an isolated
 database without changing the learner's payments database. Presentation and

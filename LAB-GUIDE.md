@@ -1,5 +1,10 @@
 # PostgreSQL training — lesson 1
 
+For lesson 2's separate locking database, setup, ordered scripts, and verification,
+see the [lesson 2 worksheet](lesson-2/WORKSHEET.md) and
+[rehearsed observations](lesson-2/REFERENCE.md). Run `./lab locking reset` after
+startup, then open `./lab locking a`, `b`, and `observer` in separate terminals.
+
 A one-hour lesson on indices and query performance, with repeatable PostgreSQL
 experiments. The labs use one million deterministic payments and follow the
 same queries as the slides maintained separately in `db-training-app`.

@@ -11,7 +11,8 @@ Usage: ./lab COMMAND
   run EXERCISE          Run one file (name below, with or without .sql)
   reset                 Replace payments with the original million rows
   check                 Check seed contents and report current indices
-  verify                Rehearse all exercises in an isolated temporary database
+  verify                Rehearse lesson 1 in an isolated temporary database
+  locking COMMAND       Lesson 2: reset, a, b, observer, observe, check, verify
   stop                  Stop PostgreSQL, preserving its data
 
 Exercises, in order:
@@ -21,11 +22,29 @@ Exercises, in order:
   04-composite         Compare latest payments before and after a composite index
   05-costs             Inspect storage; optional inserts into disposable tables
   06-review            Try the closing client/date-range query
+
+Lesson 2 (separate database named locking):
+  ./lab locking reset     Create/reset the lesson 2 dataset; preserves lesson 1
+  ./lab locking a         Open database session A (same for b and observer)
+  ./lab locking observe   Report activity, locks and index progress once
+  ./lab locking check     Check the lesson 2 seed and index validity
+  ./lab locking verify    Rehearse conflicts in an isolated temporary database
+See lesson-2/WORKSHEET.md for the ordered steps and psql script commands.
 HELP
 }
 
 psql_batch() {
     docker compose exec -T db psql -X -U student -d payments -v ON_ERROR_STOP=1 -P pager=off "$@"
+}
+
+locking_psql() {
+    application_name=$1
+    shift
+    if [ -t 0 ] && [ -t 1 ]; then
+        docker compose exec -e PGAPPNAME="$application_name" db psql -X -U student -d locking -v ON_ERROR_STOP=1 -P pager=off "$@"
+    else
+        docker compose exec -T -e PGAPPNAME="$application_name" db psql -X -U student -d locking -v ON_ERROR_STOP=1 -P pager=off "$@"
+    fi
 }
 
 command=${1:-help}
@@ -43,6 +62,23 @@ case "$command" in
     reset) psql_batch -f /lab/sql/reset.sql ;;
     check) psql_batch -f /lab/sql/check.sql ;;
     verify) exec ./tests/verify.sh ;;
+    locking)
+        locking_command=${1:-help}
+        if [ "$#" -gt 0 ]; then shift; fi
+        case "$locking_command" in
+            reset)
+                if [ "$(psql_batch -Atqc "SELECT 1 FROM pg_database WHERE datname = 'locking'")" != 1 ]; then
+                    docker compose exec -T db createdb -U student locking
+                fi
+                locking_psql lesson2-setup -f /lab/sql/lesson-2/reset.sql
+                ;;
+            a|b|observer) locking_psql "lesson2-$locking_command" "$@" ;;
+            observe) locking_psql lesson2-observer -f /lab/sql/lesson-2/observe.sql ;;
+            check) locking_psql lesson2-check -f /lab/sql/lesson-2/check.sql ;;
+            verify) exec ./tests/verify-locking.sh ;;
+            *) usage; exit 2 ;;
+        esac
+        ;;
     run)
         if [ "$#" -ne 1 ]; then usage >&2; exit 2; fi
         exercise=${1%.sql}

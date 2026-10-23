@@ -1,7 +1,17 @@
 # PostgreSQL training labs
 
 Repeatable Docker Compose labs for practical PostgreSQL lessons. Lesson 1 covers
-indices and query plans using one million deterministic payments.
+indices and query plans using one million deterministic payments. Lesson 2
+covers locks, competing operations, and ordinary/concurrent index rebuilding.
+
+| Lesson | Worksheet | Prepare | Rehearse |
+| --- | --- | --- | --- |
+| 1 · Indices and query plans | [Worksheet](WORKSHEET.md) | `./lab reset` | `./lab verify` |
+| 2 · Locking (draft) | [Worksheet](lesson-2/WORKSHEET.md) | `./lab locking reset` | `./lab locking verify` |
+
+Lesson 2 uses a separate `locking` database and preserves lesson 1's data.
+Start PostgreSQL first with `./lab start`. Open its three connections using
+`./lab locking a`, `./lab locking b`, and `./lab locking observer`.
 
 ## Installation
 
@@ -23,7 +33,8 @@ still using that port, copy `.env.example` to `.env` and choose another
 it does not copy or reuse the old lab's database contents.
 
 Stop with `docker compose down`. Start the exercises over with `./lab reset`.
-Run `./lab verify` for a full rehearsal in an isolated temporary database.
+Run `./lab verify` for a lesson 1 rehearsal, or `./lab locking verify` for
+lesson 2, each in an isolated temporary database.
 
 See the [lab guide](LAB-GUIDE.md) for exercises, GUI connection details and
 troubleshooting, and [recorded plans](reference/README.md) for reference output.
