@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_DB: payments
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_INITDB_ARGS: --locale=C --encoding=UTF8
+      TZ: UTC
+    # Keep the first plans readable without parallel worker accounting or JIT.
+    # All scan methods and their cost settings retain PostgreSQL defaults.
+    command: ["postgres", "-c", "max_parallel_workers_per_gather=0", "-c", "jit=off"]
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    shm_size: 128mb
+    volumes:
+      # PostgreSQL 18 stores PGDATA below this version-independent mount.
+      - payments_data:/var/lib/postgresql
+      - ./sql:/lab/sql:ro
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-payments.sql:ro
+    healthcheck:
+      # The initialization server uses only a Unix socket. Test TCP so startup
+      # does not finish until the seed has completed and the final server runs.
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "student", "-d", "payments"]
+      interval: 5s
+      timeout: 3s
+      start_period: 60s
+      retries: 12
+volumes:
+  payments_data:

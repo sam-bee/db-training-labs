@@ -1,0 +1,2 @@
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM payments WHERE client_id = 42;

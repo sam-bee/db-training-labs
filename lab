@@ -1,0 +1,57 @@
+#!/bin/sh
+# Only Docker Compose and a POSIX shell are needed on the host.
+set -eu
+cd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+usage() {
+    cat <<'HELP'
+Usage: ./lab COMMAND
+  start                 Start PostgreSQL and wait for the initial seed
+  psql [PSQL_ARGS...]    Open psql, or pass -c 'SQL', -f /lab/sql/FILE.sql, etc.
+  run EXERCISE          Run one file (name below, with or without .sql)
+  reset                 Replace payments with the original million rows
+  check                 Check seed contents and report current indices
+  verify                Rehearse all exercises in an isolated temporary database
+  stop                  Stop PostgreSQL, preserving its data
+
+Exercises, in order:
+  01-baseline           Plain EXPLAIN and three measured client lookups
+  02-client-index       Add the client index and repeat the same lookups
+  03-selectivity        Compare completed/failed, before and after a status index
+  04-composite         Compare latest payments before and after a composite index
+  05-costs             Inspect storage; optional inserts into disposable tables
+  06-review            Try the closing client/date-range query
+HELP
+}
+
+psql_batch() {
+    docker compose exec -T db psql -X -U student -d payments -v ON_ERROR_STOP=1 -P pager=off "$@"
+}
+
+command=${1:-help}
+if [ "$#" -gt 0 ]; then shift; fi
+case "$command" in
+    start) docker compose up -d --wait --wait-timeout 180 db ;;
+    stop) docker compose stop db ;;
+    psql)
+        if [ -t 0 ] && [ -t 1 ]; then
+            docker compose exec db psql -X -U student -d payments -v ON_ERROR_STOP=1 -P pager=off "$@"
+        else
+            psql_batch "$@"
+        fi
+        ;;
+    reset) psql_batch -f /lab/sql/reset.sql ;;
+    check) psql_batch -f /lab/sql/check.sql ;;
+    verify) exec ./tests/verify.sh ;;
+    run)
+        if [ "$#" -ne 1 ]; then usage >&2; exit 2; fi
+        exercise=${1%.sql}
+        case "$exercise" in
+            01-baseline|02-client-index|03-selectivity|04-composite|05-costs|06-review)
+                psql_batch -f "/lab/sql/$exercise.sql" ;;
+            *) printf 'Unknown exercise: %s\n' "$1" >&2; exit 2 ;;
+        esac
+        ;;
+    help|--help|-h) usage ;;
+    *) usage >&2; exit 2 ;;
+esac

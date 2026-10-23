@@ -1,0 +1,5 @@
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM payments
+WHERE client_id = 42
+ORDER BY created_at DESC
+LIMIT 20;
