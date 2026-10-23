@@ -6,7 +6,7 @@ Follow the [installation steps](README.md), then use the commands below. SQL is 
 `./lab psql` lets you run individual statements yourself. No browser control
 executes SQL.
 
-## 1. Find client 42 (slides 2–8, core)
+## 1. Find client 42 (slides 3–9, core)
 
 Run `./lab reset` once to restore the starting state, then
 `./lab run 01-baseline`. There are 1,000,000 rows, with 1,000 for client 42.
@@ -38,7 +38,7 @@ and node times are averages per loop; parent timings include child work.
 Shared buffer counts refer to pages accessed, not rows. A shared read can still
 come from the operating system's cache. Building an index also warms caches.
 
-## 2. Common and rare statuses (slide 9, core)
+## 2. Common and rare statuses (slide 10, core)
 
 There are 900,000 completed, 10,000 failed and 90,000 pending payments. Predict
 separately for each value, then run `./lab run 03-selectivity`. The script removes
@@ -57,7 +57,7 @@ What makes the failed query different? Is there a universal matching percentage
 at which an index wins? Compare the full `SELECT *` workload throughout;
 changing it to `count(*)` may allow an index-only scan and changes the experiment.
 
-## 3. Latest payments (slides 10–11, stretch)
+## 3. Latest payments (slides 11–12, stretch)
 
 If time is short, skip to costs and the review. Predict whether the existing
 client index can supply date order, then run `./lab run 04-composite`.
@@ -80,7 +80,7 @@ LIMIT 20;
 Explain: why can the ordered scan stop after 20? Why put client first? Does this
 index contain everything needed by `SELECT *`? What does "Backward" mean here?
 
-## 4. Costs and a fresh query (slides 12–14)
+## 4. Costs and a fresh query (slides 13–15)
 
 Run `./lab run 05-costs` to see storage costs. Its optional write comparison
 executes inserts into two temporary tables, then rolls back; `payments` stays
